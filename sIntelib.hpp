@@ -27,20 +27,7 @@ public:
 
 	class LivingObject *Get() const {return obj;}
 };
-// class SExpressionGameObject : public SExpression {
-// 	class Object *obj;
-// public:
-// 	static IntelibTypeId TypeId;
 
-// 	SExpressionGameObject();
-// 	~SExpressionGameObject();
-
-// 	virtual SString TextRepresentation() const;
-// 	virtual SReference Clone(bool force) const;
-
-// class Object *Get() const {return obj;}
-// //private:
-// 	SExpressionGameObject(const Object &obj);
 
 class LFunctionSay1 : public SExpressionFunction {
 public:
@@ -54,6 +41,24 @@ public:
 class LFunctionSay : public SExpressionFunction {
 public:
 	LFunctionSay() : SExpressionFunction(2, 2) {}
+	virtual void DoApply(int paramsc,
+	                     const SReference paramsv[],
+	                     IntelibContinuation &lf) const;
+	virtual SString TextRepresentation() const;
+};
+
+class LFunctionName : public SExpressionFunction {
+public:
+	LFunctionName() : SExpressionFunction(1, 1) {}
+	virtual void DoApply(int paramsc,
+	                     const SReference paramsv[],
+	                     IntelibContinuation &lf) const;
+	virtual SString TextRepresentation() const;
+};
+
+class LFunction_Name : public SExpressionFunction {
+public:
+	LFunction_Name() : SExpressionFunction(1, 1) {}
 	virtual void DoApply(int paramsc,
 	                     const SReference paramsv[],
 	                     IntelibContinuation &lf) const;

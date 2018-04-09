@@ -30,35 +30,6 @@ SReference SExpressionLivingObject::Clone(bool /*force*/) const
     return new SExpressionLivingObject(*obj);
 }
 
-// IntelibTypeId SExpressionGameObject::TypeId(&SExpression::TypeId);
-
-// SExpressionGameObject::SExpressionGameObject()
-// 	: SExpression(TypeId)
-// {
-// 	obj = new Object();
-// }
-
-// SExpressionGameObject::SExpressionGameObject(const Object &object)
-// 	: SExpression(TypeId)
-// {
-// 	obj = new Object(object);
-// }
-
-// SExpressionGameObject::~SExpressionGameObject()
-// {
-// 	delete obj;
-// }
-
-// SString SExpressionGameObject::TextRepresentation() const
-// {
-// 	return SString("#<GAME OBJECT>");
-// }
-
-// SReference SExpressionGameObject::Clone(bool /*force*/) const
-// {
-//     return new SExpressionGameObject(*obj);
-// }
-
 // IntelibTypeId SExpressionRoomExit::TypeId(&SExpression::TypeId);
 
 // SExpressionRoomExit::SExpressionRoomExit()
@@ -126,6 +97,45 @@ void LFunctionSay::DoApply(int paramsc,
 	LReference ref = (L| SAY, objExp, "Something");
 	//LReference ref = (L| NIL);
 	// livObj->DoPhysicFunc(ref);
+	livObj->ChangeContinuation(LivingObject::physic);
+	livObj->DoPhysicFuncSay(paramsv[1].GetString());
+	lf.RegularReturn(*PTheEmptyList);
+}
+
+void LFunctionName::DoApply(int paramsc,
+		const SReference paramsv[],
+		IntelibContinuation &lf) const
+{
+	printf("DoApplyNAME\n");
+	//lf.RegularReturn(new SExpressionPermGen(paramsv[0].GetInt()));
+	SExpressionLivingObject *objExp =
+		paramsv[0].DynamicCastGetPtr<SExpressionLivingObject>();
+	if(!objExp)
+	    throw IntelibX("Not a living object");
+
+	LivingObject *livObj = objExp -> Get();
+
+
+
+	livObj->ChangeContinuation(LivingObject::physic);
+	livObj->DoPhysicFuncName();
+	lf.RegularReturn(*PTheEmptyList);
+}
+
+void LFunction_Name::DoApply(int paramsc,
+		const SReference paramsv[],
+		IntelibContinuation &lf) const
+{
+	printf("DoApplyNAME\n");
+	//lf.RegularReturn(new SExpressionPermGen(paramsv[0].GetInt()));
+	SExpressionLivingObject *objExp =
+		paramsv[0].DynamicCastGetPtr<SExpressionLivingObject>();
+	if(!objExp)
+	    throw IntelibX("not a living object");
+
+	LivingObject *livObj = objExp -> Get();
+
+
 	livObj->DoPhysicFuncSay(paramsv[1].GetString());
 	livObj->ChangeContinuation(LivingObject::physic);
 	lf.RegularReturn(*PTheEmptyList);
@@ -181,6 +191,16 @@ SString LFunctionSay1::TextRepresentation() const
 SString LFunctionSay::TextRepresentation() const
 {
 	return SString("#<FUNCTION SAY>");
+}
+
+SString LFunctionName::TextRepresentation() const
+{
+	return SString("#<FUNCTION NAME>");
+}
+
+SString LFunction_Name::TextRepresentation() const
+{
+	return SString("#<FUNCTION _NAME>");
 }
 
 // SString LFunctionWays::TextRepresentation() const

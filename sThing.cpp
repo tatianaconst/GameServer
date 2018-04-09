@@ -31,116 +31,60 @@ LFunctionalSymbol<LFunctionSay1>  SAY1 ("SAY1");
 // 			);
 // }
 
-void LivingObject::DoPhysicFuncSay(const char *message)
+void LivingObject::ReadProgram(const char *prog, StepCont contKind)
 {
-
-	printf("DOFUNCSAY\n");
-	PhysMark = contPhys->GetMark();
-	//contPhys->Evaluate(ref);
-	LListConstructor L;
-	//contPhys->PushTodo(LispContinuation::just_evaluate, ref);
-	SReference ref2 = new SExpressionLivingObject(*this);
-	//LSymbol MYSAY("MYSAY");
-	//LSymbol HUY("HUY");
-	//contPhys->PushTodo(LispContinuation::just_evaluate, (L| HUY, ref2, message));
-
-///////////////////////////////////////////
 	IntelibReader reader;
-	LSymbol REFOBJ("REFOBJ");
-	REFOBJ -> SetDynamicValue(ref2);
-	(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()))->Import(REFOBJ);
-	reader.SetPackage(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()));
-	//contPhys = new LispContinuation;
-
+	if (contKind == behavior) {
+		reader.SetPackage(static_cast<LExpressionPackage*>(BehPackage.GetPtr()));//
+	}
+	else {
+		reader.SetPackage(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()));
+	}
 	RefNode *refList = NULL, *refP;
-	LReference ref;
-	const char* fun = "(DEFUN MYSAY (OBJ STR) (SAY1 OBJ 10)) (MYSAY REFOBJ 4)";
-	SStreamCharbuf bufProgram(/*moderProgram*/fun);
+	SStreamCharbuf bufProgram(prog);
 
-	ref = reader.Read(bufProgram);
+	LReference ref = reader.Read(bufProgram);
 	while (ref != IntelibReader::EofMarker) {
-		printf("AZAZAZAZAAZ\n");
 		refP = new RefNode;
 		refP -> ref = ref;
 		refP -> next = refList;
 		refList = refP;
 		ref = reader.Read(bufProgram);
 	}
-	//PhysMark = contPhys->GetMark();
-
-	//LListConstructor L;
-	//SReference ref2 = new SExpressionLivingObject(*this);
- 	//contPhys -> PushTodo(LispContinuation::just_evaluate, (L| MAIN, ref2));
 	while (refList != NULL) {
-		printf("TTTTTTTT\n");
-		contPhys->PushTodo(LispContinuation::just_evaluate, refList->ref);
+		if (contKind == behavior) {
+			contBeh->PushTodo(LispContinuation::just_evaluate, refList->ref);//
+		}
+		else {
+			contPhys->PushTodo(LispContinuation::just_evaluate, refList->ref);
+		}
 		refP = refList->next;
 		delete(refList);
 		refList = refP;
 	}
+}
 
+void LivingObject::DoPhysicFuncName()
+{
 
-/////////////////////////////////////////////////////////////////
+}
 
-
-
-
-
-
-
-	LSymbol OBJ("OBJ");
-	LSymbol STR("STR");
-		// LReference refSayMeow = 
-		// (L| DEFUN, MYSAY, (L| OBJ, STR),
-		// 		(L| SAY1, OBJ, "MEOW")
-		// 	);
-		// LReference refSay =
-		// 		(L| DEFUN, MYSAY, (L| OBJ, STR),
-		// 			(L| SAY1, OBJ, STR)
-		// 		);
-
-
-		//contPhys->PushTodo(LispContinuation::just_evaluate, refSayMeow);
-		//contPhys->PushTodo(LispContinuation::just_evaluate, refSay);
+void LivingObject::DoPhysicFuncSay(const char *message)
+{
+	PhysMark = contPhys->GetMark();
+	char funCall[1000];
+	sprintf(funCall, "(SAY MYOBJ \"%s\")", message);
+	ReadProgram(funCall, physic);
 }
 
 void LivingObject::ActivatePhysObject() 
 {
-	//SStreamCharbuf bufProgram(moderProgram);
-
 	try {
-		IntelibReader reader;
-		reader.SetPackage(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()));
 		contPhys = new LispContinuation;
+		ReadProgram(moderProgram, physic);
 
-		RefNode *refList = NULL, *refP;
-		LReference ref;
-		// ref = reader.Read(bufProgram);
-		// while (ref != IntelibReader::EofMarker) {
-		// 	refP = new RefNode;
-		// 	refP -> ref = ref;
-		// 	refP -> next = refList;
-		// 	refList = refP;
-		// 	ref = reader.Read(bufProgram);
-		// }
-		PhysMark = contPhys->GetMark();
-
-		LListConstructor L;
-		//SReference ref2 = new SExpressionLivingObject(*this);
-	 	//contPhys -> PushTodo(LispContinuation::just_evaluate, (L| MAIN, ref2));
-		while (refList != NULL) {
-			printf("NotNULL\n");
-			//contPhys->PushTodo(LispContinuation::just_evaluate, refList->ref);
-			refP = refList->next;
-			delete(refList);
-			refList = refP;
-		}
-
-		LSymbol OBJ("OBJ");
-		LSymbol STR("STR");
-		// contPhys->PushTodo(LispContinuation::just_evaluate, refsay);
-		//contPhys->PushTodo(LispContinuation::just_evaluate, refSayMeow);
-		//contPhys->PushTodo(LispContinuation::just_evaluate, refSay);
+		const char funcSay[] = "(DEFUN SAY (OBJ STR) (SAY1 OBJ STR))";
+		ReadProgram(funcSay, physic);
 		printf("Physic activated\n");
 	}
 	catch(...) {
@@ -150,40 +94,18 @@ void LivingObject::ActivatePhysObject()
 
 void LivingObject::ActivateBehObject() 
 {
-	SStreamCharbuf bufProgram(plrProgram);
+	//SStreamCharbuf bufProgram(plrProgram);
 
 	try {
-		IntelibReader reader;
-		reader.SetPackage(static_cast<LExpressionPackage*>(BehPackage.GetPtr()));
 		contBeh = new LispContinuation;
-
-		typedef struct RefNode {
-			LReference ref;
-			struct RefNode *next;
-		} RefNode;
-
-		RefNode *refList = NULL, *refP;
-		LReference ref;
-		ref = reader.Read(bufProgram);
-		while (ref != IntelibReader::EofMarker) {
-			refP = new RefNode;
-			refP -> ref = ref;
-			refP -> next = refList;
-			refList = refP;
-			ref = reader.Read(bufProgram);
-		}
 		behMark = contBeh -> GetMark();
 
 		LListConstructor L;
 		SReference ref2 = new SExpressionLivingObject(*this);
 	 	contBeh -> PushTodo(LispContinuation::just_evaluate, (L| MAIN, ref2));
 
-		while (refList != NULL) {
-			contBeh -> PushTodo(LispContinuation::just_evaluate, refList -> ref);
-			refP = refList -> next;
-			delete(refList);
-			refList = refP;
-		}
+	 	ReadProgram(plrProgram, behavior);
+
 		currState = Working;
 		printf("Behavior activated\n");
 	}
@@ -202,9 +124,10 @@ LExpressionPackage *LivingObject::PlayerPackage(LSymbol &main)
 	p->Import(main);
 	// p->Import(WAYS);
 
-	// SReference ref = new SExpressionGameObject(*this);
-	// OBJ -> SetDynamicValue(ref);
-	// p->Import(OBJ);
+	// LSymbol MYOBJ("MYOBJ");
+	// SReference ref = new SExpressionLivingObject(*this);
+	// MYOBJ->SetDynamicValue(ref);
+	// p->Import(MYOBJ);
 	return p;
 }
 
@@ -217,9 +140,10 @@ LExpressionPackage *LivingObject::ModerPackage()
 	//p->Import(MAIN);
 	// p->Import(WAYS);
 
-	// SReference ref = new SExpressionGameObject(*this);
-	// OBJ -> SetDynamicValue(ref);
-	// p->Import(OBJ);
+	LSymbol MYOBJ("MYOBJ");
+	SReference ref = new SExpressionLivingObject(*this);
+	MYOBJ->SetDynamicValue(ref);
+	p->Import(MYOBJ);
 	return p;
 }
 
@@ -244,17 +168,17 @@ void LivingObject::DoStep() {
 				contBeh->Step();
 			}
 			else { // availCont == physic
-				// if(!contPhys->Ready(PhysMark)) {
+				if(!contPhys->Ready(PhysMark)) {
 						//printf("contPhysStep\n");
 					bool notEmpty = contPhys->Step();
 					//printf("%d\n", notEmpty);
 					if (!notEmpty) {
 						avalCont = behavior;
 					}
-				// }
-				// else {
-				// 	avalCont = behavior;
-				// }
+				}
+				else {
+					avalCont = behavior;
+				}
 			}
 		}
 	}

@@ -69,11 +69,14 @@ public:
 	void ChangeContinuation(StepCont c) {avalCont = c;}
 	//void DoPhysicFunc(LReference ref);
 	void DoPhysicFuncSay(const char* message);
+	void DoPhysicFuncName();
+	//void ReadProgramPhys(const char *prog);
 private:
 
 	void Say(const char *str);
 	LExpressionPackage *PlayerPackage(LSymbol &main);
 	LExpressionPackage *ModerPackage();
+	void ReadProgram(const char *prog, StepCont contKind);
 };
 
 #endif 
