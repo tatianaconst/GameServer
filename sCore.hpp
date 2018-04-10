@@ -30,8 +30,8 @@ void Say(char *message)
 class ServerLogic 
 {
 	ServerConnection *connect;
-	std::vector<Room> allRooms;
-	std::vector<PlayerCharacter> playChar;
+	std::vector<Room*> allRooms;
+	std::vector<PlayerCharacter*> playChar;
 	std::vector<LivingObject*> allLivObjects;
 	ServerCommands cmd;
 
@@ -43,9 +43,9 @@ public:
 	~ServerLogic(){}
 
 	void LoadRooms();
-	void SaveRooms() {for(unsigned int i = 0; i < allRooms.size(); ++i) allRooms[i].SaveRoom();}
+	void SaveRooms() {for(unsigned int i = 1; i < allRooms.size(); ++i) allRooms[i]->SaveRoom();}
 	int NewPlayer(int sd);
-	std::vector<PlayerCharacter> *GetPlayers() {return &playChar;}
+	std::vector<PlayerCharacter*> *GetPlayers() {return &playChar;}
 	bool DefineCmd(int i);
 	void DoActions();
 };

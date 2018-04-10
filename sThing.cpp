@@ -2,6 +2,7 @@
 #define STHING_CPP
 
 #include "sThing.hpp"
+#include "sRoom.hpp"
 
 typedef struct RefNode {
 			LReference ref;
@@ -176,13 +177,15 @@ LExpressionPackage *LivingObject::ModerPackage()
 	return p;
 }
 
-void LivingObject::PrintObject() {
+void LivingObject::PrintObject() 
+{
 	printf("Name:%s\nBehavior:%s\bPhysic:%s\n", name, plrProgram, moderProgram);
 }
 
 const int stepsPerAction = 50;
 
-void LivingObject::DoStep() {
+void LivingObject::DoStep() 
+{
 //добавить работу второй континуации
 	printf("DUBSTEP\n");
 	if (passSec > 0)
@@ -225,9 +228,10 @@ void LivingObject::DoStep() {
 	}
 }
 
-// void LivingObject::Say() {
-
-// }
+void LivingObject::SayToAll(const char *message) 
+{
+	currRoom->SayToAll(message, 0);
+}
 
 
 

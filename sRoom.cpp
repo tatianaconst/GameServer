@@ -3,10 +3,20 @@
 
 
 #include "sRoom.hpp"
-
+#include "sPlayer.hpp"
 char *Room::GetInteractiveList() 
 {
 	return interactiveList;
+}
+
+void Room::DelPlayer(PlayerCharacter *i) 
+{//  !!!!!!!!!!!!!!!!!!!!!!!!!!
+	PlayersInside.erase(std::remove(PlayersInside.begin(), PlayersInside.end(), i), PlayersInside.end());
+}
+
+void Room::AddPlayer(PlayerCharacter *pl) 
+{
+	PlayersInside.push_back(pl);
 }
 
 bool Room::TryToLeave(char* command, int* room)
@@ -19,6 +29,20 @@ bool Room::TryToLeave(char* command, int* room)
 		return true;
 	}
 	return false;
+}
+
+void Room::SayToAll(const char *message, int myFd) {
+	printf("Players inside: %d\n", PlayersInside.size());
+	for (unsigned i = 0; i < PlayersInside.size(); ++i) {
+		if (myFd != PlayersInside[i]->GetFd()) {
+			write(PlayersInside[i]->GetFd(), message, strlen(message) + 1);
+		}
+		else {
+			char mess[100];
+			sprintf(mess, "[SAY] %s\n", message);
+			write(myFd, mess, strlen(mess) + 1);
+		}
+	}
 }
 
 void Room::SaveRoom() 

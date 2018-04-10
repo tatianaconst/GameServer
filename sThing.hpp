@@ -3,6 +3,9 @@
 
 #include "sIntelib.hpp"
 #include <string.h>
+//#include "sRoom.hpp"
+
+class Room;
 
 enum ObjState {
 	NotReady,
@@ -34,11 +37,12 @@ class LivingObject
 
 	ObjState currState;
 
+	Room *currRoom;
 	int passSec;
 	char name[50];
 	char moderProgram[1000];
 	char plrProgram[1000];
-
+	int roomId;
 
 	LReference PhysPackage;
 	LReference BehPackage;
@@ -68,6 +72,7 @@ public:
 	void SetTitle(const char *t) {strcpy(name, t);}
 	void SetModerProgram(const char *t) {strcpy(moderProgram, t);}
 	void SetPlrProgram(const char *t) {strcpy(plrProgram, t);}
+	void SetRoomId(int id) {roomId = id;}
 	void PrintObject();
 	ObjState GetState() {return currState;}
 	const char *GetName() {return name;}
@@ -77,9 +82,10 @@ public:
 	void DoPhysicFuncName();
 	//void ReadProgramPhys(const char *prog);
 	void CheckAction(ActionType t);
+	void SayToAll(const char *str);
 private:
 
-	void Say(const char *str);
+	
 	LExpressionPackage *PlayerPackage(LSymbol &main);
 	LExpressionPackage *ModerPackage();
 	void ReadProgram(const char *prog, StepCont contKind);

@@ -15,13 +15,20 @@
 #include <algorithm>
 #include "sThing.hpp"
 #include "sThing.hpp"
+#include <arpa/inet.h>
+#include <unistd.h>
+//#include "sCore.hpp"
+
+class PlayerCharacter;
 
 typedef std::map<std::string, int> mapWays;
 
 class Room {
+	//ServerLogic *gameServer;
 	int id;
 	char description[1000];
-	std::vector<int> PlayersInside;
+	std::vector<PlayerCharacter*> PlayersInside;
+	//std::vector<int> PlayersInside;
 	std::vector<LivingObject*> hereLivObjects;
 	char interactiveList[500];
 
@@ -31,8 +38,8 @@ class Room {
 	char posRoomsList[500];
 	char posObjectsList[500];
 public:
-	Room()
-	:id(0)
+	Room(int i)
+	: id(i)
 	{}
 	~Room(){}
 
@@ -42,10 +49,10 @@ public:
 	char *GetDesc(){return description;}
 	char *GetInteractiveList();
 	mapWays GetPosRooms() {return posRooms;}
-	void AddPlayer(int i) {PlayersInside.push_back(i);}
-	void DelPlayer(int i) {
-		PlayersInside.erase(std::remove(PlayersInside.begin(), PlayersInside.end(), i), PlayersInside.end());
-	}
+	void AddPlayer(PlayerCharacter *pl);// {PlayersInside.push_back(pl);}
+	void DelPlayer(PlayerCharacter *i);// {//  !!!!!!!!!!!!!!!!!!!!!!!!!!
+		//PlayersInside.erase(std::remove(PlayersInside.begin(), PlayersInside.end(), i), PlayersInside.end());
+	//}
 	bool TryToLeave(char* command, int* room);
 	void SaveRoom();
 	void SetDescription(char *d) {strcpy(description, d);}
@@ -69,14 +76,14 @@ public:
 		hereLivObjects.push_back(obj);
 
 		char newobj[50];
-		sprintf(newobj, "%d %s", hereLivObjects.size() - 1, obj->GetName());
+		sprintf(newobj, "%d %s", (int)hereLivObjects.size() - 1, obj->GetName());
 		strcat(posObjectsList, newobj);
 	}
 	void CheckAction(int id, ActionType a) 
 	{
 		hereLivObjects[id]->CheckAction(a);
 	}
-	
+	void SayToAll(const char *message, int myFd);
 };
 
 

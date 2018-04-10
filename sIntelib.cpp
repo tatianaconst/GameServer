@@ -68,8 +68,8 @@ void LFunctionSay1::DoApply(int paramsc,
 		paramsv[0].DynamicCastGetPtr<SExpressionLivingObject>();
 	if(!objExp)
 	    throw IntelibX("not a living object");
-	//LivingObject *livObj = objExp -> Get();
-	//livObj -> Say(paramsv[1].GetString());
+	LivingObject *livObj = objExp -> Get();
+	livObj -> SayToAll(paramsv[1].GetString());
 	printf("SAY1: %s\n", paramsv[1].GetString());
 	//printf("SAY: MEOW\n");
 	lf.RegularReturn(*PTheEmptyList);
