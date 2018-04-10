@@ -130,6 +130,7 @@ const char cmd_rnd[] = "AROUND";
 const char cmd_way[] = "WAY";
 const char cmd_beh[] = "B";
 const char cmd_phy[] = "PHYS";
+const char cmd_tch[] = "TOUCH";
 
 bool ServerLogic::DefineCmd(int i)
 {
@@ -169,7 +170,15 @@ bool ServerLogic::DefineCmd(int i)
 		return true;
 	}
 	if (strcmp(firstWord, cmd_rnd) == 0) {
-		//write(playChar[i].GetFd(), message, strlen(message) + 1);
+		char makedesc[1000];
+		int roomId = playChar[i].GetRoomIndex();
+		sprintf(makedesc, "%s\nPossible ways:\n%s\nPOssible objects:\n%s\n",
+			allRooms[roomId].GetDesc(), allRooms[roomId].GetPosRoomsList(),
+			allRooms[roomId].GetPosObjectsList());
+		// strcat(makedesc, allRooms[roomId].GetDesc());
+		// strcat(makedesc, allRooms[roomId].GetPosRoomsList());
+		// strcat(makedesc, allRooms[roomId].GetPosObjectsList());
+		write(playChar[i].GetFd(), makedesc, strlen(makedesc) + 1);
 	}
 	if (strcmp(firstWord, cmd_beh) == 0) {
 		int objId = atoi(restWords);
@@ -177,7 +186,12 @@ bool ServerLogic::DefineCmd(int i)
 		int roomId = playChar[i].GetRoomIndex();
 		allRooms[roomId].ActivatePhysical(objId);
 		allRooms[roomId].ActivateBehavior(objId);
+	}
+	if (strcmp(firstWord, cmd_tch) == 0) {
+		int objId = atoi(restWords);
 
+		int roomId = playChar[i].GetRoomIndex();
+		allRooms[roomId].CheckAction(objId, touch);
 	}
 	if (strcmp(firstWord, cmd_phy) == 0) {
 		int objId = atoi(restWords);

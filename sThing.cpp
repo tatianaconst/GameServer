@@ -11,6 +11,9 @@ typedef struct RefNode {
 LSymbol LivingObject::MAIN("MAIN");
 
 LFunctionalSymbol<LFunctionCompiledDefun>  DEFUN("DEFUN");
+LFunctionalSymbol<LFunctionCond>  COND("COND");
+LFunctionalSymbol<LFunctionEq>  EQ("EQ");
+LFunctionalSymbol<LFunctionEql>  EQL("EQL");
 //LFunctionalSymbol<LFunctionSay>  SAY ("SAY");
 LFunctionalSymbol<LFunctionSay1>  SAY1 ("SAY1");
 // LFunctionalSymbol<LFunctionPause>  PAUSE ("PAUSE");
@@ -38,6 +41,10 @@ void LivingObject::ReadProgram(const char *prog, StepCont contKind)
 		reader.SetPackage(static_cast<LExpressionPackage*>(BehPackage.GetPtr()));//
 	}
 	else {
+		LSymbol MYOBJ("MYOBJ");
+		SReference ref = new SExpressionLivingObject(*this);
+		MYOBJ->SetDynamicValue(ref);
+		static_cast<LExpressionPackage*>(PhysPackage.GetPtr())->Import(MYOBJ);
 		reader.SetPackage(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()));
 	}
 	RefNode *refList = NULL, *refP;
@@ -69,9 +76,21 @@ void LivingObject::DoPhysicFuncName()
 
 }
 
+void LivingObject::CheckAction(ActionType t)
+{	
+	char funCall[1000];
+	switch(t) {
+		case touch:
+			sprintf(funCall, "(REACTION MYOBJ \"TOUCH\")");
+			break;
+	}
+	
+	ReadProgram(funCall, physic);
+}
+
 void LivingObject::DoPhysicFuncSay(const char *message)
 {
-	PhysMark = contPhys->GetMark();
+	//PhysMark = contPhys->GetMark();
 	char funCall[1000];
 	sprintf(funCall, "(SAY MYOBJ \"%s\")", message);
 	ReadProgram(funCall, physic);
@@ -104,7 +123,11 @@ void LivingObject::ActivateBehObject()
 		SReference ref2 = new SExpressionLivingObject(*this);
 	 	contBeh -> PushTodo(LispContinuation::just_evaluate, (L| MAIN, ref2));
 
+
 	 	ReadProgram(plrProgram, behavior);
+
+	 	const char funcSay[] = "(DEFUN MAIN (OBJ) ())";
+		ReadProgram(funcSay, physic);
 
 		currState = Working;
 		printf("Behavior activated\n");
@@ -120,6 +143,9 @@ LExpressionPackage *LivingObject::PlayerPackage(LSymbol &main)
 	p->Import(DEFUN);
 	LFunctionalSymbol<LFunctionSay>  SAY ("SAY");
 	p->Import(SAY);
+	p->Import(COND);
+	p->Import(EQ);
+	p->Import(EQL);
 	// p->Import(PAUSE);
 	p->Import(main);
 	// p->Import(WAYS);
@@ -136,14 +162,17 @@ LExpressionPackage *LivingObject::ModerPackage()
 	LExpressionPackage *p = new LExpressionPackageIntelib;
 	p->Import(DEFUN);
 	p->Import(SAY1);
+	p->Import(COND);
+	p->Import(EQ);
+	p->Import(EQL);
 	// p->Import(PAUSE);
 	//p->Import(MAIN);
 	// p->Import(WAYS);
 
-	LSymbol MYOBJ("MYOBJ");
-	SReference ref = new SExpressionLivingObject(*this);
-	MYOBJ->SetDynamicValue(ref);
-	p->Import(MYOBJ);
+	// LSymbol MYOBJ("MYOBJ");
+	// SReference ref = new SExpressionLivingObject(*this);
+	// MYOBJ->SetDynamicValue(ref);
+	// p->Import(MYOBJ);
 	return p;
 }
 
@@ -164,12 +193,12 @@ void LivingObject::DoStep() {
 		for (int steps = 0; steps < stepsPerAction && passSec == 0; ++steps) {
 			//printf("STEPAN\n");
 			if ((avalCont == behavior) && (!contBeh->Ready(behMark))) {
-				//printf("behStep\n");
+				printf("behStep\n");
 				contBeh->Step();
 			}
 			else { // availCont == physic
 				if(!contPhys->Ready(PhysMark)) {
-						//printf("contPhysStep\n");
+					printf("physStep\n");
 					bool notEmpty = contPhys->Step();
 					//printf("%d\n", notEmpty);
 					if (!notEmpty) {

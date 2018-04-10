@@ -34,6 +34,7 @@ class ServerLogic
 	std::vector<PlayerCharacter> playChar;
 	std::vector<LivingObject*> allLivObjects;
 	ServerCommands cmd;
+
 	
 public:
 	ServerLogic(ServerConnection *s)

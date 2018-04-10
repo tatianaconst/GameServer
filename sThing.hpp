@@ -10,6 +10,10 @@ enum ObjState {
 	Working
 };
 
+enum ActionType {
+	touch
+};
+
 class Object 
 {
 	LispContinuation *lspCont;
@@ -66,11 +70,13 @@ public:
 	void SetPlrProgram(const char *t) {strcpy(plrProgram, t);}
 	void PrintObject();
 	ObjState GetState() {return currState;}
+	const char *GetName() {return name;}
 	void ChangeContinuation(StepCont c) {avalCont = c;}
 	//void DoPhysicFunc(LReference ref);
 	void DoPhysicFuncSay(const char* message);
 	void DoPhysicFuncName();
 	//void ReadProgramPhys(const char *prog);
+	void CheckAction(ActionType t);
 private:
 
 	void Say(const char *str);
