@@ -8,10 +8,15 @@
 class Room;
 
 enum ObjState {
-	NotReady,
-	Idle,
-	Working
+	NotReady,//  Nothing
+	Idle,//      OnlyPhys
+	Working//    Phys + Behavior
 };
+
+	enum StepCont {
+			physic,
+			behavior
+		};
 
 enum ActionType {
 	touch
@@ -38,53 +43,53 @@ class LivingObject
 	ObjState currState;
 
 	Room *currRoom;
-	int passSec;
+	int *passSec;
 	char name[50];
 	char moderProgram[1000];
 	char plrProgram[1000];
-	int roomId;
+	//int roomId;
 
 	LReference PhysPackage;
 	LReference BehPackage;
 
 	int PhysMark;
 	int behMark;
-public:
-	enum StepCont {
-			physic,
-			behavior
-		};
-private:	
-	StepCont avalCont;
+	StepCont *avalCont;
 public:
 	LivingObject()
 	:contPhys(0), contBeh(0), currState(Idle),
-	 passSec(0),
 	 PhysPackage(ModerPackage()), 
-	 BehPackage(PlayerPackage(MAIN)),
-	 avalCont(physic)
-	{}
+	 BehPackage(PlayerPackage(MAIN))
+	{
+		passSec = new int(0);
+		avalCont = new StepCont(physic);
+	}
 	~LivingObject(){}
 
 	void ActivateBehObject();
 	void ActivatePhysObject();
-	void DoStep();
-	void SetTitle(const char *t) {strcpy(name, t);}
-	void SetModerProgram(const char *t) {strcpy(moderProgram, t);}
-	void SetPlrProgram(const char *t) {strcpy(plrProgram, t);}
-	void SetRoomId(int id) {roomId = id;}
+	void CheckAction(ActionType t);
 	void PrintObject();
-	ObjState GetState() {return currState;}
-	const char *GetName() {return name;}
-	void ChangeContinuation(StepCont c) {avalCont = c;}
-	//void DoPhysicFunc(LReference ref);
+	void DoStep();
+	void SayToAll(const char *str);
+	void LoseSec(int s) {*passSec = s;}
+	void ChangeContinuation(StepCont c) {*avalCont = c;printf("Change %d\n", c);}
+	void ChangeAnswerContinuation();
 	void DoPhysicFuncSay(const char* message);
 	void DoPhysicFuncName();
-	//void ReadProgramPhys(const char *prog);
-	void CheckAction(ActionType t);
-	void SayToAll(const char *str);
-private:
+	void DoPhysicFuncPause(int sec);
 
+
+
+	void SetTitle(const char *t) {char tg[20]; strcpy(tg, t); strcpy(name, strtok(tg, "\n"));}
+	void SetModerProgram(const char *t) {strcpy(moderProgram, t);}
+	void SetPlrProgram(const char *t) {strcpy(plrProgram, t);}
+	void SetRoom(Room *r) {currRoom = r;}
+
+	ObjState GetState() {return currState;}
+	const char *GetName() {return name;}
+	
+private:
 	
 	LExpressionPackage *PlayerPackage(LSymbol &main);
 	LExpressionPackage *ModerPackage();

@@ -31,11 +31,13 @@ bool Room::TryToLeave(char* command, int* room)
 	return false;
 }
 
-void Room::SayToAll(const char *message, int myFd) {
+void Room::SayToAll(const char *message, int myFd, const char *name) {
 	printf("Players inside: %d\n", PlayersInside.size());
 	for (unsigned i = 0; i < PlayersInside.size(); ++i) {
 		if (myFd != PlayersInside[i]->GetFd()) {
-			write(PlayersInside[i]->GetFd(), message, strlen(message) + 1);
+			char mess[100];
+			sprintf(mess, "[%s] %s\n", name, message);
+			write(PlayersInside[i]->GetFd(), mess, strlen(mess) + 1);
 		}
 		else {
 			char mess[100];

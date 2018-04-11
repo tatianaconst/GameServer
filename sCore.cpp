@@ -34,7 +34,7 @@ ServerConnection::ServerConnection(int port)
 void ServerLogic::DoActions()
 {
 	for (uint i = 0; i < allLivObjects.size(); i++) {
-		if (allLivObjects[i]->GetState() == Working) {
+		if (allLivObjects[i]->GetState() == Working || allLivObjects[i]->GetState() == Idle) {
 			allLivObjects[i]->DoStep();
 		}
 	}
@@ -169,7 +169,7 @@ bool ServerLogic::DefineCmd(int i)
 		std::cout << "[SAY] " << restWords << std::endl;
 		int roomId = playChar[i]->GetRoomIndex();
 		int fd = playChar[i]->GetFd();
-		allRooms[roomId]->SayToAll(restWords, fd);
+		allRooms[roomId]->SayToAll(restWords, fd, playChar[i]->GetName());
 		return true;
 	}
 
@@ -193,7 +193,7 @@ bool ServerLogic::DefineCmd(int i)
 		int objId = atoi(restWords);
 
 		int roomId = playChar[i]->GetRoomIndex();
-		allRooms[roomId]->ActivatePhysical(objId);
+		//allRooms[roomId]->ActivatePhysical(objId);
 		allRooms[roomId]->ActivateBehavior(objId);
 	}
 	if (strcmp(firstWord, cmd_tch) == 0) {
@@ -306,7 +306,7 @@ void ServerLogic::LoadRooms()
 			}
 			if (0 == strcmp(firstWord, "/object/")) {
 				newLivObj = new LivingObject();
-				newLivObj->SetRoomId(newRoomId);
+				newLivObj->SetRoom(allRooms[newRoomId]);
 			}
 			if (0 == strcmp(firstWord, "/title/")) {
 				newLivObj->SetTitle(saveString + strlen(firstWord));
@@ -320,6 +320,7 @@ void ServerLogic::LoadRooms()
 			if (0 == strcmp(firstWord, "/endobject/")) {
 				allLivObjects.push_back(newLivObj);
 				allRooms[newRoomId]->AddLivObject(newLivObj);
+				newLivObj->ActivatePhysObject();
 				newLivObj->PrintObject();
 				newLivObj = NULL;
 

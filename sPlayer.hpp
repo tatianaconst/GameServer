@@ -42,6 +42,7 @@ public:
 	int GetAccBufSize() {return accBufSize;}
 	PlayState GetMode() {return curMode;}
 	void SetLogin(char *log) {strcpy(login, log); curMode = Active;}
+	const char *GetName() {return login;}
 };
 
 #endif

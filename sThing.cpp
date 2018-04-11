@@ -16,7 +16,8 @@ LFunctionalSymbol<LFunctionCond>  COND("COND");
 LFunctionalSymbol<LFunctionEq>  EQ("EQ");
 LFunctionalSymbol<LFunctionEql>  EQL("EQL");
 //LFunctionalSymbol<LFunctionSay>  SAY ("SAY");
-LFunctionalSymbol<LFunctionSay1>  SAY1 ("SAY1");
+LFunctionalSymbol<LFunction_Say>  _SAY ("_SAY");
+LFunctionalSymbol<LFunction_Pause>  _PAUSE ("_PAUSE");
 // LFunctionalSymbol<LFunctionPause>  PAUSE ("PAUSE");
 // LFunctionalSymbol<LFunctionWays> WAYS ("WAYS");
 
@@ -43,7 +44,7 @@ void LivingObject::ReadProgram(const char *prog, StepCont contKind)
 	}
 	else {
 		LSymbol MYOBJ("MYOBJ");
-		SReference ref = new SExpressionLivingObject(*this);
+		SReference ref = new SExpressionLivingObject(this);
 		MYOBJ->SetDynamicValue(ref);
 		static_cast<LExpressionPackage*>(PhysPackage.GetPtr())->Import(MYOBJ);
 		reader.SetPackage(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()));
@@ -72,11 +73,6 @@ void LivingObject::ReadProgram(const char *prog, StepCont contKind)
 	}
 }
 
-void LivingObject::DoPhysicFuncName()
-{
-
-}
-
 void LivingObject::CheckAction(ActionType t)
 {	
 	char funCall[1000];
@@ -87,7 +83,20 @@ void LivingObject::CheckAction(ActionType t)
 	}
 	
 	ReadProgram(funCall, physic);
+	ChangeContinuation(physic);
 }
+
+
+void LivingObject::DoPhysicFuncName()
+{
+	ReadProgram("(NAME MYOBJ)", physic);
+}
+
+void LivingObject::ChangeAnswerContinuation() 
+{
+
+}
+
 
 void LivingObject::DoPhysicFuncSay(const char *message)
 {
@@ -97,14 +106,25 @@ void LivingObject::DoPhysicFuncSay(const char *message)
 	ReadProgram(funCall, physic);
 }
 
+void LivingObject::DoPhysicFuncPause(int sec)
+{
+	//PhysMark = contPhys->GetMark();
+	char funCall[1000];
+	sprintf(funCall, "(PAUSE MYOBJ %d)", sec);
+	ReadProgram(funCall, physic);
+}
+
 void LivingObject::ActivatePhysObject() 
 {
 	try {
 		contPhys = new LispContinuation;
 		ReadProgram(moderProgram, physic);
 
-		const char funcSay[] = "(DEFUN SAY (OBJ STR) (SAY1 OBJ STR))";
+		const char funcSay[] = "(DEFUN SAY (OBJ STR) (_SAY OBJ STR))";
 		ReadProgram(funcSay, physic);
+		const char funcPause[] = "(DEFUN PAUSE (OBJ SEC) (_PAUSE OBJ SEC))";
+		ReadProgram(funcPause, physic);
+		currState = Idle;
 		printf("Physic activated\n");
 	}
 	catch(...) {
@@ -121,7 +141,7 @@ void LivingObject::ActivateBehObject()
 		behMark = contBeh -> GetMark();
 
 		LListConstructor L;
-		SReference ref2 = new SExpressionLivingObject(*this);
+		SReference ref2 = new SExpressionLivingObject(this);
 	 	contBeh -> PushTodo(LispContinuation::just_evaluate, (L| MAIN, ref2));
 
 
@@ -143,7 +163,9 @@ LExpressionPackage *LivingObject::PlayerPackage(LSymbol &main)
 	LExpressionPackage *p = new LExpressionPackageIntelib;
 	p->Import(DEFUN);
 	LFunctionalSymbol<LFunctionSay>  SAY ("SAY");
+	LFunctionalSymbol<LFunctionPause>  PAUSE ("PAUSE");
 	p->Import(SAY);
+	p->Import(PAUSE);
 	p->Import(COND);
 	p->Import(EQ);
 	p->Import(EQL);
@@ -162,7 +184,8 @@ LExpressionPackage *LivingObject::ModerPackage()
 {
 	LExpressionPackage *p = new LExpressionPackageIntelib;
 	p->Import(DEFUN);
-	p->Import(SAY1);
+	p->Import(_SAY);
+	p->Import(_PAUSE);
 	p->Import(COND);
 	p->Import(EQ);
 	p->Import(EQL);
@@ -187,29 +210,31 @@ const int stepsPerAction = 50;
 void LivingObject::DoStep() 
 {
 //добавить работу второй континуации
-	printf("DUBSTEP\n");
-	if (passSec > 0)
-		--passSec;
+	printf("DUBSTEP %d\n", *passSec);
+	if (*passSec > 0)
+		--*passSec;
 
 	bool notEmpty = true;
 	try {
-		for (int steps = 0; steps < stepsPerAction && passSec == 0; ++steps) {
-			//printf("STEPAN\n");
-			if ((avalCont == behavior) && (!contBeh->Ready(behMark))) {
-				printf("behStep\n");
+		for (int steps = 0; steps < stepsPerAction && *passSec == 0; ++steps) {
+			//printf("Cont %d\n", *avalCont);
+			if ((*avalCont == behavior) && (!contBeh->Ready(behMark))) {
+				//printf("behStep\n");
 				contBeh->Step();
 			}
 			else { // availCont == physic
 				if(!contPhys->Ready(PhysMark)) {
-					printf("physStep\n");
+					//printf("physStep\n");
 					bool notEmpty = contPhys->Step();
 					//printf("%d\n", notEmpty);
-					if (!notEmpty) {
-						avalCont = behavior;
+					if (!notEmpty && currState == Working) {
+						printf("Change to beh\n");
+						*avalCont = behavior;
 					}
 				}
-				else {
-					avalCont = behavior;
+				else if (currState == Working){
+					printf("Change to beh\n");
+					*avalCont = behavior;
 				}
 			}
 		}
@@ -230,7 +255,7 @@ void LivingObject::DoStep()
 
 void LivingObject::SayToAll(const char *message) 
 {
-	currRoom->SayToAll(message, 0);
+	currRoom->SayToAll(message, 0, name);
 }
 
 

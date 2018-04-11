@@ -19,6 +19,7 @@ public:
 	static IntelibTypeId TypeId;
 
 	SExpressionLivingObject();
+	SExpressionLivingObject(LivingObject *obj);
 	~SExpressionLivingObject();
 	SExpressionLivingObject(const LivingObject &obj);
 
@@ -29,9 +30,9 @@ public:
 };
 
 
-class LFunctionSay1 : public SExpressionFunction {
+class LFunction_Say : public SExpressionFunction {
 public:
-	LFunctionSay1() : SExpressionFunction(2, 2) {}
+	LFunction_Say() : SExpressionFunction(2, 2) {}
 	virtual void DoApply(int paramsc,
 	                     const SReference paramsv[],
 	                     IntelibContinuation &lf) const;
@@ -75,14 +76,23 @@ public:
 // 	virtual SString TextRepresentation() const;
 // };
 
-// class LFunctionPause : public SExpressionFunction {
-// public:
-// 	LFunctionPause() : SExpressionFunction(2, 2) {}
-// 	virtual void DoApply(int paramsc,
-// 	                     const SReference paramsv[],
-// 	                     IntelibContinuation &lf) const;
-// 	virtual SString TextRepresentation() const;
-// };
+class LFunctionPause : public SExpressionFunction {
+public:
+	LFunctionPause() : SExpressionFunction(2, 2) {}
+	virtual void DoApply(int paramsc,
+	                     const SReference paramsv[],
+	                     IntelibContinuation &lf) const;
+	virtual SString TextRepresentation() const;
+};
+
+class LFunction_Pause : public SExpressionFunction {
+public:
+	LFunction_Pause() : SExpressionFunction(2, 2) {}
+	virtual void DoApply(int paramsc,
+	                     const SReference paramsv[],
+	                     IntelibContinuation &lf) const;
+	virtual SString TextRepresentation() const;
+};
 
 // class SExpressionRoomExit : public SExpressionGameObject {
 // 	struct RoomExit *exit;

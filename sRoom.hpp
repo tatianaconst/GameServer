@@ -76,14 +76,14 @@ public:
 		hereLivObjects.push_back(obj);
 
 		char newobj[50];
-		sprintf(newobj, "%d %s", (int)hereLivObjects.size() - 1, obj->GetName());
+		sprintf(newobj, "%d %s\n", (int)hereLivObjects.size() - 1, obj->GetName());
 		strcat(posObjectsList, newobj);
 	}
 	void CheckAction(int id, ActionType a) 
 	{
 		hereLivObjects[id]->CheckAction(a);
 	}
-	void SayToAll(const char *message, int myFd);
+	void SayToAll(const char *message, int myFd, const char *name);
 };
 
 
