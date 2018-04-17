@@ -10,44 +10,33 @@ typedef struct RefNode {
 } RefNode;
 
 LSymbol LivingObject::MAIN("MAIN");
+LSymbol LivingObject::FUNC_SAY("FUNC_SAY");
+LSymbol LivingObject::FUNC_NAME("FUNC_NAME");
+LSymbol LivingObject::FUNC_PAUSE("FUNC_PAUSE");
+
+
 
 LFunctionalSymbol<LFunctionCompiledDefun>  DEFUN("DEFUN");
 LFunctionalSymbol<LFunctionCond>  COND("COND");
 LFunctionalSymbol<LFunctionEq>  EQ("EQ");
 LFunctionalSymbol<LFunctionEql>  EQL("EQL");
-//LFunctionalSymbol<LFunctionSay>  SAY ("SAY");
-LFunctionalSymbol<LFunction_Say>  _SAY ("_SAY");
-LFunctionalSymbol<LFunction_Pause>  _PAUSE ("_PAUSE");
-// LFunctionalSymbol<LFunctionPause>  PAUSE ("PAUSE");
-// LFunctionalSymbol<LFunctionWays> WAYS ("WAYS");
 
-// void LivingObject::DoPhysicFunc(LReference ref)
-// {
-// 	PhysMark = contPhys->GetMark();
-// 	//contPhys->Evaluate(ref);
-// 	LListConstructor L;
-// 	contPhys->PushTodo(LispContinuation::just_evaluate, ref);
-// 	contPhys->PushTodo(LispContinuation::just_evaluate, (L| SAY, 9, 0));
-// 	LSymbol OBJ("OBJ");
-// 		LSymbol STR("STR");
-// 		LReference refSayMeow = 
-// 		(L| DEFUN, SAY, (L| OBJ, STR),
-// 				(L| SAY1, OBJ, "MEOW")
-// 			);
-// }
+LFunctionalSymbol<LFunctionDefaultSay>  DEFAULT_SAY ("DEFAULT_SAY");
+LFunctionalSymbol<LFunctionDefaultPause>  DEFAULT_PAUSE ("DEFAULT_PAUSE");
+LFunctionalSymbol<LFunctionDefaultSay>  DEFAULT_NAME ("DEFAULT_NAME");
 
 void LivingObject::ReadProgram(const char *prog, StepCont contKind)
 {
 	IntelibReader reader;
 	if (contKind == behavior) {
-		reader.SetPackage(static_cast<LExpressionPackage*>(BehPackage.GetPtr()));//
+		reader.SetPackage(BehPackage);//
 	}
 	else {
 		LSymbol MYOBJ("MYOBJ");
 		SReference ref = new SExpressionLivingObject(this);
 		MYOBJ->SetDynamicValue(ref);
-		static_cast<LExpressionPackage*>(PhysPackage.GetPtr())->Import(MYOBJ);
-		reader.SetPackage(static_cast<LExpressionPackage*>(PhysPackage.GetPtr()));
+		PhysPackage->Import(MYOBJ);
+		reader.SetPackage(PhysPackage);
 	}
 	RefNode *refList = NULL, *refP;
 	SStreamCharbuf bufProgram(prog);
@@ -94,24 +83,36 @@ void LivingObject::DoPhysicFuncName()
 
 void LivingObject::ChangeAnswerContinuation() 
 {
-
+	SReference ref, refNil;
+	contPhys->PopResult(ref);
+	contBeh->PopResult(refNil);
+	contPhys->PushResult(ref);
+	contBeh->PushResult(ref);
 }
 
 
 void LivingObject::DoPhysicFuncSay(const char *message)
 {
 	//PhysMark = contPhys->GetMark();
-	char funCall[1000];
-	sprintf(funCall, "(SAY MYOBJ \"%s\")", message);
-	ReadProgram(funCall, physic);
+
+	SReference Say = PhysPackage->FindSymbol("FUNC_SAY");
+	SReference MyObj = new SExpressionLivingObject(this);
+	SReference Str = new SExpressionString(message);
+	//LListConstructor L;
+	SReference sayCall = (L| Say, MyObj, Str);
+	contPhys -> PushTodo(LispContinuation::just_evaluate, sayCall);
 }
 
 void LivingObject::DoPhysicFuncPause(int sec)
 {
 	//PhysMark = contPhys->GetMark();
-	char funCall[1000];
-	sprintf(funCall, "(PAUSE MYOBJ %d)", sec);
-	ReadProgram(funCall, physic);
+
+	SReference Pause = PhysPackage->FindSymbol("FUNC_PAUSE");
+	SReference MyObj = new SExpressionLivingObject(this);
+	SReference Sec = new SExpressionInt(sec);
+	//LListConstructor L;
+	SReference pauseCall = (L| Pause, MyObj, Sec);
+	contPhys -> PushTodo(LispContinuation::just_evaluate, pauseCall);
 }
 
 void LivingObject::ActivatePhysObject() 
@@ -120,10 +121,34 @@ void LivingObject::ActivatePhysObject()
 		contPhys = new LispContinuation;
 		ReadProgram(moderProgram, physic);
 
-		const char funcSay[] = "(DEFUN SAY (OBJ STR) (_SAY OBJ STR))";
-		ReadProgram(funcSay, physic);
-		const char funcPause[] = "(DEFUN PAUSE (OBJ SEC) (_PAUSE OBJ SEC))";
-		ReadProgram(funcPause, physic);
+
+		SReference Defun = PhysPackage->FindSymbol("DEFUN");
+
+
+		SReference Func_Say = PhysPackage->FindSymbol("FUNC_SAY");
+		SReference Obj = PhysPackage->Intern("OBJ");
+		SReference Str = PhysPackage->Intern("STR");
+		SReference Default_Say = PhysPackage->FindSymbol("DEFAULT_SAY");
+
+		SReference progSay = (L| Defun, Func_Say, (Obj, Str), (Default_Say, Obj, Str));
+		contPhys -> PushTodo(LispContinuation::just_evaluate, progSay);
+
+		SReference Func_Pause = PhysPackage->FindSymbol("FUNC_PAUSE");
+		SReference Sec = PhysPackage->Intern("SEC");
+		SReference Default_Pause = PhysPackage->FindSymbol("DEFAULT_PAUSE");
+
+		SReference progPause = (L| DEFUN, FUNC_PAUSE, (Obj, Sec), (Default_Pause, Obj, Sec));
+		contPhys -> PushTodo(LispContinuation::just_evaluate, progPause);
+
+		// SReference progName = (L| Defun, Func_Say, (Obj, Str), (Default_Say, Obj, Str));
+		// contPhys -> PushTodo(LispContinuation::just_evaluate, progSay);
+
+		// const char funcSay[] = "(DEFUN SAY (OBJ STR) (_SAY OBJ STR))";
+		// ReadProgram(funcSay, physic);
+		// const char funcPause[] = "(DEFUN PAUSE (OBJ SEC) (_PAUSE OBJ SEC))";
+		// ReadProgram(funcPause, physic);
+		// const char funcName[] = "(DEFUN NAME (OBJ SEC) (_NAME OBJ SEC))";
+		// ReadProgram(funcName, physic);
 		currState = Idle;
 		printf("Physic activated\n");
 	}
@@ -140,7 +165,7 @@ void LivingObject::ActivateBehObject()
 		contBeh = new LispContinuation;
 		behMark = contBeh -> GetMark();
 
-		LListConstructor L;
+		//LListConstructor L;
 		SReference ref2 = new SExpressionLivingObject(this);
 	 	contBeh -> PushTodo(LispContinuation::just_evaluate, (L| MAIN, ref2));
 
@@ -164,19 +189,15 @@ LExpressionPackage *LivingObject::PlayerPackage(LSymbol &main)
 	p->Import(DEFUN);
 	LFunctionalSymbol<LFunctionSay>  SAY ("SAY");
 	LFunctionalSymbol<LFunctionPause>  PAUSE ("PAUSE");
+	LFunctionalSymbol<LFunctionName>  NAME ("NAME");
 	p->Import(SAY);
+	p->Import(NAME);
 	p->Import(PAUSE);
 	p->Import(COND);
 	p->Import(EQ);
 	p->Import(EQL);
-	// p->Import(PAUSE);
-	p->Import(main);
-	// p->Import(WAYS);
 
-	// LSymbol MYOBJ("MYOBJ");
-	// SReference ref = new SExpressionLivingObject(*this);
-	// MYOBJ->SetDynamicValue(ref);
-	// p->Import(MYOBJ);
+	p->Import(main);
 	return p;
 }
 
@@ -184,19 +205,16 @@ LExpressionPackage *LivingObject::ModerPackage()
 {
 	LExpressionPackage *p = new LExpressionPackageIntelib;
 	p->Import(DEFUN);
-	p->Import(_SAY);
-	p->Import(_PAUSE);
+	p->Import(DEFAULT_SAY);
+	p->Import(FUNC_SAY);
+	p->Import(DEFAULT_NAME);
+	p->Import(FUNC_NAME);
+	p->Import(DEFAULT_PAUSE);
+	p->Import(FUNC_PAUSE);
 	p->Import(COND);
 	p->Import(EQ);
 	p->Import(EQL);
-	// p->Import(PAUSE);
-	//p->Import(MAIN);
-	// p->Import(WAYS);
 
-	// LSymbol MYOBJ("MYOBJ");
-	// SReference ref = new SExpressionLivingObject(*this);
-	// MYOBJ->SetDynamicValue(ref);
-	// p->Import(MYOBJ);
 	return p;
 }
 
@@ -228,19 +246,19 @@ void LivingObject::DoStep()
 					bool notEmpty = contPhys->Step();
 					//printf("%d\n", notEmpty);
 					if (!notEmpty && currState == Working) {
-						printf("Change to beh\n");
+						//printf("Change to beh\n");
 						*avalCont = behavior;
 					}
 				}
 				else if (currState == Working){
-					printf("Change to beh\n");
+					//printf("Change to beh\n");
 					*avalCont = behavior;
 				}
 			}
 		}
 	}
 	catch(IntelibX &x) {
-		printf("\nCaught IntelibX: %s\n", x.Description() );
+		printf("\n[DoStep %d]: Caught IntelibX: %s\n",*avalCont, x.Description() );
 		if(x.Parameter().GetPtr()) {
 			printf("%s\n", x.Parameter()->TextRepresentation().c_str());
  		}

@@ -138,11 +138,6 @@ const char cmd_playerprog[] = "PLAYERPROG";
 
 bool ServerLogic::DefineCmd(int i)
 {
-	// if (playChar[i].GetMode() == New) {
-	// 	printf("WTF\n");
-	// 	char message[] = "Enter command [login <your login>]\n";
-	// 	write(playChar[i].GetFd(), message, strlen(message) + 1);
-	// }
 	char command[1024]; 
 	char saveString[1024]; 
 	strcpy(command, playChar[i]->GetStrBuf());
@@ -150,6 +145,11 @@ bool ServerLogic::DefineCmd(int i)
 	//std::cout << playChar[i].GetStrBuf() << std::endl;
 	//std::cout << command << std::endl;
 	if (command[0] == 0) {
+		// if (playChar[i]->GetMode() == New) {
+		// 	//printf("WTF\n");
+		// 	char message[] = "Enter command [login <your login>]\n";
+		// 	write(playChar[i]->GetFd(), message, strlen(message) + 1);
+		// }
 		return true;
 	}
 	for (uint ic = 0; ic < strlen(command); ++ic)
@@ -165,17 +165,28 @@ bool ServerLogic::DefineCmd(int i)
 	// std::cout << firstWord << std::endl;
 	
 //To do map with commands and functions
+	if (strcmp(firstWord, cmd_login) == 0) {
+		std::cout << "[LOGIN] " << restWords << std::endl;
+		playChar[i]->SetLogin(restWords);
+		char mes[100];
+		sprintf(mes, "[LOGIN] [%s]\n", restWords);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
+		return true;
+	}
+	// if (playChar[i]->GetMode() == New) {
+	// 	//printf("WTF\n");
+	// 	char message[] = "Enter command [login <your login>]\n";
+	// 	write(playChar[i]->GetFd(), message, strlen(message) + 1);
+	// 	return true;
+	// }
 	if (strcmp(firstWord, cmd_say) == 0) {
 		std::cout << "[SAY] " << restWords << std::endl;
 		int roomId = playChar[i]->GetRoomIndex();
 		int fd = playChar[i]->GetFd();
 		allRooms[roomId]->SayToAll(restWords, fd, playChar[i]->GetName());
-		return true;
-	}
-
-	if (strcmp(firstWord, cmd_login) == 0) {
-		std::cout << "[LOGIN] " << restWords << std::endl;
-		playChar[i]->SetLogin(restWords);
+		char mes[100];
+		sprintf(mes, "[SAY] [%s]\n", restWords);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
 		return true;
 	}
 	if (strcmp(firstWord, cmd_rnd) == 0) {
@@ -187,6 +198,9 @@ bool ServerLogic::DefineCmd(int i)
 		// strcat(makedesc, allRooms[roomId].GetDesc());
 		// strcat(makedesc, allRooms[roomId].GetPosRoomsList());
 		// strcat(makedesc, allRooms[roomId].GetPosObjectsList());
+		char mes[100];
+		sprintf(mes, "[AROUND]\n");
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
 		write(playChar[i]->GetFd(), makedesc, strlen(makedesc) + 1);
 	}
 	if (strcmp(firstWord, cmd_beh) == 0) {
@@ -194,44 +208,77 @@ bool ServerLogic::DefineCmd(int i)
 
 		int roomId = playChar[i]->GetRoomIndex();
 		//allRooms[roomId]->ActivatePhysical(objId);
+		char mes[100];
+		sprintf(mes, "[BEHAVIOR] [%d]\n", objId);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
 		allRooms[roomId]->ActivateBehavior(objId);
 	}
 	if (strcmp(firstWord, cmd_tch) == 0) {
 		int objId = atoi(restWords);
 
 		int roomId = playChar[i]->GetRoomIndex();
+		char mes[100];
+		sprintf(mes, "[TOUCH] [%d]\n", objId);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
+
 		allRooms[roomId]->CheckAction(objId, touch);
 	}
 	if (strcmp(firstWord, cmd_phy) == 0) {
 		int objId = atoi(restWords);
 
 		int roomId = playChar[i]->GetRoomIndex();
+		char mes[100];
+		sprintf(mes, "[PHYSIC] [%d]\n", objId);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
+
 		allRooms[roomId]->ActivatePhysical(objId);
 	}
-	// if (strcmp(firstWord, cmd_crt) == 0) {
-	// 	int objId = atoi(restWords);
+	if (strcmp(firstWord, cmd_crt) == 0) {
+		int objId = atoi(restWords);
 
-	// 	int roomId = playChar[i].GetRoomIndex();
-	// 	allRooms[roomId].ActivatePhysical(objId);
-	// }
-	// if (strcmp(firstWord, cmd_title) == 0) {
-	// 	int objId = atoi(restWords);
+		int roomId = playChar[i]->GetRoomIndex();
+		LivingObject *newLivObj = new LivingObject();
+		newLivObj->SetRoom(allRooms[roomId]);
+		allLivObjects.push_back(newLivObj);
+		char mes[100];
+		sprintf(mes, "[CREATE]\n");
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
 
-	// 	int roomId = playChar[i].GetRoomIndex();
-	// 	allRooms[roomId].ActivatePhysical(objId);
-	// }
-	// if (strcmp(firstWord, cmd_moderprog) == 0) {
-	// 	int objId = atoi(restWords);
+		allRooms[roomId]->AddLivObject(newLivObj);
+		//newLivObj->ActivatePhysObject();
+		//newLivObj->PrintObject();
+		//newLivObj = NULL;
+	}
+	if (strcmp(firstWord, cmd_title) == 0) {
+		int objId = atoi(restWords);
+		int roomId = playChar[i]->GetRoomIndex();
+		char mes[100];
+		sprintf(mes, "[TITLE] [%d]\n", objId);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
 
-	// 	int roomId = playChar[i].GetRoomIndex();
-	// 	allRooms[roomId].ActivatePhysical(objId);
-	// }
-	// if (strcmp(firstWord, cmd_playerprog) == 0) {
-	// 	int objId = atoi(restWords);
+		allRooms[roomId]->ActivatePhysical(objId);
+	}
+	if (strcmp(firstWord, cmd_moderprog) == 0) {
+		int objId = atoi(restWords);
 
-	// 	int roomId = playChar[i].GetRoomIndex();
-	// 	allRooms[roomId].ActivatePhysical(objId);
-	// }
+		int roomId = playChar[i]->GetRoomIndex();
+		char mes[100];
+		sprintf(mes, "[MODER PROG] [%d]\n", objId);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
+
+		allRooms[roomId]->AddLivObjectModerProgram(objId, restWords);
+
+	}
+	if (strcmp(firstWord, cmd_playerprog) == 0) {
+		int objId = atoi(restWords);
+
+		int roomId = playChar[i]->GetRoomIndex();
+		char mes[100];
+		sprintf(mes, "[PLAYER PROG] [%d]\n", objId);
+		write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
+
+		allRooms[roomId]->AddLivObjectPlayerProgram(objId, restWords);
+	}
 	if (strcmp(firstWord, cmd_way) == 0) {
 		std::cout << "[WAY] " << std::endl;
 		char secondWord[20];
@@ -242,7 +289,7 @@ bool ServerLogic::DefineCmd(int i)
 		std::cout << "WAY " << secondWord << nextRoomIdx << std::endl;
 		if (nextRoomIdx != 0) {
 			char mes[100];
-			sprintf(mes, "[WAY] [%s]", secondWord);
+			sprintf(mes, "[WAY] [%s]\n", secondWord);
 			write(playChar[i]->GetFd(), mes, strlen(mes) + 1);
 			playChar[i]->SetRoomIndex(nextRoomIdx);
 		} else {
@@ -252,6 +299,7 @@ bool ServerLogic::DefineCmd(int i)
 		
 		//write(playChar[i].GetFd(), message, strlen(message) + 1);
 	}
+	
 	playChar[i]->ClearStrBuf();
 	return true;
 }

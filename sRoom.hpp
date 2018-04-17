@@ -79,6 +79,15 @@ public:
 		sprintf(newobj, "%d %s\n", (int)hereLivObjects.size() - 1, obj->GetName());
 		strcat(posObjectsList, newobj);
 	}
+
+	void AddLivObjectModerProgram(int objId, const char *program)
+	{
+		hereLivObjects[objId]->SetModerProgram(program);
+	}
+	void AddLivObjectPlayerProgram(int objId, const char *program)
+	{
+		hereLivObjects[objId]->SetPlrProgram(program);
+	}
 	void CheckAction(int id, ActionType a) 
 	{
 		hereLivObjects[id]->CheckAction(a);

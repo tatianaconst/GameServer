@@ -13,10 +13,10 @@ enum ObjState {
 	Working//    Phys + Behavior
 };
 
-	enum StepCont {
-			physic,
-			behavior
-		};
+enum StepCont {
+		physic,
+		behavior
+	};
 
 enum ActionType {
 	touch
@@ -26,6 +26,9 @@ class Object
 {
 	LispContinuation *lspCont;
 	static LSymbol MAIN;
+
+
+
 	LExpressionPackage *ReaderPackage(LSymbol &main);
 	ObjState currState;
 public:
@@ -39,6 +42,9 @@ class LivingObject
 	LispContinuation *contBeh;
 
 	static LSymbol MAIN;
+	static LSymbol FUNC_SAY;//("FUNC_SAY");
+	static LSymbol FUNC_NAME;//("FUNC_NAME");
+	static LSymbol FUNC_PAUSE;//("FUNC_PAUSE");
 
 	ObjState currState;
 
@@ -49,20 +55,23 @@ class LivingObject
 	char plrProgram[1000];
 	//int roomId;
 
-	LReference PhysPackage;
-	LReference BehPackage;
+	LExpressionPackage *PhysPackage;
+	LExpressionPackage *BehPackage;
+
+	LListConstructor L;
 
 	int PhysMark;
 	int behMark;
 	StepCont *avalCont;
 public:
 	LivingObject()
-	:contPhys(0), contBeh(0), currState(Idle),
+	:contPhys(0), contBeh(0), currState(NotReady),
 	 PhysPackage(ModerPackage()), 
 	 BehPackage(PlayerPackage(MAIN))
 	{
 		passSec = new int(0);
 		avalCont = new StepCont(physic);
+		sprintf(name, "NONAME");
 	}
 	~LivingObject(){}
 
@@ -82,11 +91,19 @@ public:
 
 
 	void SetTitle(const char *t) {char tg[20]; strcpy(tg, t); strcpy(name, strtok(tg, "\n"));}
-	void SetModerProgram(const char *t) {strcpy(moderProgram, t);}
+	void SetModerProgram(const char *t) 
+	{
+		strcpy(moderProgram, t); 
+		currState = NotReady; 
+		*avalCont = physic;
+		*passSec = 0;
+		//PhysMark = contPhys->GetMark();
+	}
 	void SetPlrProgram(const char *t) {strcpy(plrProgram, t);}
 	void SetRoom(Room *r) {currRoom = r;}
 
 	ObjState GetState() {return currState;}
+	LispContinuation *GetBehCont() {return contBeh;}
 	const char *GetName() {return name;}
 	
 private:

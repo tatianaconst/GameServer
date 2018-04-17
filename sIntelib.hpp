@@ -30,9 +30,9 @@ public:
 };
 
 
-class LFunction_Say : public SExpressionFunction {
+class LFunctionDefaultSay : public SExpressionFunction {
 public:
-	LFunction_Say() : SExpressionFunction(2, 2) {}
+	LFunctionDefaultSay() : SExpressionFunction(2, 2) {}
 	virtual void DoApply(int paramsc,
 	                     const SReference paramsv[],
 	                     IntelibContinuation &lf) const;
@@ -57,9 +57,9 @@ public:
 	virtual SString TextRepresentation() const;
 };
 
-class LFunction_Name : public SExpressionFunction {
+class LFunctionDefaultName : public SExpressionFunction {
 public:
-	LFunction_Name() : SExpressionFunction(1, 1) {}
+	LFunctionDefaultName() : SExpressionFunction(1, 1) {}
 	virtual void DoApply(int paramsc,
 	                     const SReference paramsv[],
 	                     IntelibContinuation &lf) const;
@@ -85,9 +85,9 @@ public:
 	virtual SString TextRepresentation() const;
 };
 
-class LFunction_Pause : public SExpressionFunction {
+class LFunctionDefaultPause : public SExpressionFunction {
 public:
-	LFunction_Pause() : SExpressionFunction(2, 2) {}
+	LFunctionDefaultPause() : SExpressionFunction(2, 2) {}
 	virtual void DoApply(int paramsc,
 	                     const SReference paramsv[],
 	                     IntelibContinuation &lf) const;

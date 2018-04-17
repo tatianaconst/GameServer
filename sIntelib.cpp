@@ -64,7 +64,7 @@ SReference SExpressionLivingObject::Clone(bool /*force*/) const
 // {
 //     return new SExpressionRoomExit(*exit);
 // }
-void LFunction_Say::DoApply(int paramsc,
+void LFunctionDefaultSay::DoApply(int paramsc,
 		const SReference paramsv[],
 		IntelibContinuation &lf) const
 {
@@ -81,7 +81,7 @@ void LFunction_Say::DoApply(int paramsc,
 	lf.RegularReturn(*PTheEmptyList);
 }
 
-void LFunction_Name::DoApply(int paramsc,
+void LFunctionDefaultName::DoApply(int paramsc,
 		const SReference paramsv[],
 		IntelibContinuation &lf) const
 {
@@ -100,10 +100,14 @@ void LFunction_Name::DoApply(int paramsc,
 	// livObj->ChangeContinuation(LivingObject::physic);
 	//livObj->ReturnToBeh()
 	lf.RegularReturn(name);
-	livObj->ChangeAnswerContinuation();
+	//LispContinuation *lsp = livObj->GetBehCont();
+	//LReference ref;
+	//lsp->PopResult(ref);
+	//lsp->RegularReturn(name);
+	//livObj->ChangeAnswerContinuation();
 }
 
-void LFunction_Pause::DoApply(int paramsc,
+void LFunctionDefaultPause::DoApply(int paramsc,
 		const SReference paramsv[],
 		IntelibContinuation &lf) const
 {
@@ -156,9 +160,14 @@ void LFunctionName::DoApply(int paramsc,
 
 
 
-	livObj->ChangeContinuation(physic);
-	livObj->DoPhysicFuncName();
+	 livObj->ChangeContinuation(physic);
+	 livObj->DoPhysicFuncName();
+
+	//char name[20];
+	//strcpy(name, livObj->GetName());
+
 	lf.RegularReturn(*PTheEmptyList);
+	//lf.RegularReturn(name);
 }
 
 void LFunctionPause::DoApply(int paramsc,
@@ -203,9 +212,9 @@ void LFunctionPause::DoApply(int paramsc,
 
 
 
-SString LFunction_Say::TextRepresentation() const
+SString LFunctionDefaultSay::TextRepresentation() const
 {
-	return SString("#<FUNCTION _SAY>");
+	return SString("#<FUNCTION DEFAULT_SAY>");
 }
 
 SString LFunctionSay::TextRepresentation() const
@@ -218,9 +227,9 @@ SString LFunctionName::TextRepresentation() const
 	return SString("#<FUNCTION NAME>");
 }
 
-SString LFunction_Name::TextRepresentation() const
+SString LFunctionDefaultName::TextRepresentation() const
 {
-	return SString("#<FUNCTION _NAME>");
+	return SString("#<FUNCTION DEFAULT_NAME>");
 }
 
 SString LFunctionPause::TextRepresentation() const
@@ -228,9 +237,9 @@ SString LFunctionPause::TextRepresentation() const
 	return SString("#<FUNCTION PAUSE>");
 }
 
-SString LFunction_Pause::TextRepresentation() const
+SString LFunctionDefaultPause::TextRepresentation() const
 {
-	return SString("#<FUNCTION _PAUSE>");
+	return SString("#<FUNCTION DEFAULT_PAUSE>");
 }
 
 // SString LFunctionWays::TextRepresentation() const

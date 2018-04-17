@@ -7,6 +7,7 @@
 enum PlayState {
 	New,
 	Active,
+	Admin,
 	Died,
 	Discon
 };
@@ -41,7 +42,14 @@ public:
 	}
 	int GetAccBufSize() {return accBufSize;}
 	PlayState GetMode() {return curMode;}
-	void SetLogin(char *log) {strcpy(login, log); curMode = Active;}
+	void SetLogin(char *log) 
+	{
+		strcpy(login, log);
+		if (0 == strcmp(login, "admin")) {
+			curMode = Admin;
+		}
+		curMode = Active;
+	}
 	const char *GetName() {return login;}
 };
 
