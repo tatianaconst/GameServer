@@ -74,7 +74,9 @@ void LFunctionDefaultSay::DoApply(int paramsc,
 		paramsv[0].DynamicCastGetPtr<SExpressionLivingObject>();
 	if(!objExp)
 	    throw IntelibX("not a living object");
+
 	LivingObject *livObj = objExp -> Get();
+
 	livObj -> SayToAll(paramsv[1].GetString());
 	printf("_SAY: %s\n", paramsv[1].GetString());
 	//printf("SAY: MEOW\n");
@@ -93,17 +95,19 @@ void LFunctionDefaultName::DoApply(int paramsc,
 	    throw IntelibX("not a living object");
 
 	LivingObject *livObj = objExp -> Get();
+
 	char name[20];
 	strcpy(name, livObj->GetName());
-
+	printf("_NAME: %s\n", name);
 	// livObj->DoPhysicFuncSay(paramsv[1].GetString());
 	// livObj->ChangeContinuation(LivingObject::physic);
 	//livObj->ReturnToBeh()
-	lf.RegularReturn(name);
-	//LispContinuation *lsp = livObj->GetBehCont();
-	//LReference ref;
-	//lsp->PopResult(ref);
-	//lsp->RegularReturn(name);
+	lf.RegularReturn(*PTheEmptyList);
+	LispContinuation *lsp = livObj->GetBehCont();
+	// LReference ref;
+	// lsp->PopResult(ref);
+	//lsp->ReferenceReturn(name);
+	lsp->RegularReturn(new SExpressionString(name));
 	//livObj->ChangeAnswerContinuation();
 }
 
@@ -158,15 +162,10 @@ void LFunctionName::DoApply(int paramsc,
 
 	LivingObject *livObj = objExp -> Get();
 
+	livObj->ChangeContinuation(physic);
+	livObj->DoPhysicFuncName();
 
-
-	 livObj->ChangeContinuation(physic);
-	 livObj->DoPhysicFuncName();
-
-	//char name[20];
-	//strcpy(name, livObj->GetName());
-
-	lf.RegularReturn(*PTheEmptyList);
+	//lf.RegularReturn(*PTheEmptyList);
 	//lf.RegularReturn(name);
 }
 

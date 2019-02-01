@@ -23,7 +23,7 @@ LFunctionalSymbol<LFunctionEql>  EQL("EQL");
 
 LFunctionalSymbol<LFunctionDefaultSay>  DEFAULT_SAY ("DEFAULT_SAY");
 LFunctionalSymbol<LFunctionDefaultPause>  DEFAULT_PAUSE ("DEFAULT_PAUSE");
-LFunctionalSymbol<LFunctionDefaultSay>  DEFAULT_NAME ("DEFAULT_NAME");
+LFunctionalSymbol<LFunctionDefaultName>  DEFAULT_NAME ("DEFAULT_NAME");
 
 void LivingObject::ReadProgram(const char *prog, StepCont contKind)
 {
@@ -76,31 +76,39 @@ void LivingObject::CheckAction(ActionType t)
 }
 
 
-void LivingObject::DoPhysicFuncName()
-{
-	ReadProgram("(NAME MYOBJ)", physic);
-}
+
 
 void LivingObject::ChangeAnswerContinuation() 
 {
+	printf("ChangeAnswer\n");
 	SReference ref, refNil;
 	contPhys->PopResult(ref);
 	contBeh->PopResult(refNil);
+	printf("PhysRes: %s\n", ref.GetPtr()->TextRepresentation().c_str());
+	printf("BehRes: %s\n", refNil.GetPtr()->TextRepresentation().c_str());
 	contPhys->PushResult(ref);
 	contBeh->PushResult(ref);
 }
 
 
 void LivingObject::DoPhysicFuncSay(const char *message)
-{
-	//PhysMark = contPhys->GetMark();
-
-	SReference Say = PhysPackage->FindSymbol("FUNC_SAY");
+{	
 	SReference MyObj = new SExpressionLivingObject(this);
 	SReference Str = new SExpressionString(message);
 	//LListConstructor L;
-	SReference sayCall = (L| Say, MyObj, Str);
+	SReference sayCall = (L| FUNC_SAY, MyObj, Str);
+	//printf("Im HERE: %s\n", sayCall.GetPtr()->TextRepresentation().c_str());
 	contPhys -> PushTodo(LispContinuation::just_evaluate, sayCall);
+}
+
+void LivingObject::DoPhysicFuncName()
+{
+	//ReadProgram("(FUNC_NAME MYOBJ)", physic);
+
+	SReference MyObj = new SExpressionLivingObject(this);
+	SReference nameCall = (L| FUNC_NAME, MyObj);
+	
+	contPhys -> PushTodo(LispContinuation::just_evaluate, nameCall);
 }
 
 void LivingObject::DoPhysicFuncPause(int sec)
@@ -125,20 +133,24 @@ void LivingObject::ActivatePhysObject()
 		SReference Defun = PhysPackage->FindSymbol("DEFUN");
 
 
-		SReference Func_Say = PhysPackage->FindSymbol("FUNC_SAY");
+		//SReference Func_Say = PhysPackage->FindSymbol("FUNC_SAY");
 		SReference Obj = PhysPackage->Intern("OBJ");
 		SReference Str = PhysPackage->Intern("STR");
 		SReference Default_Say = PhysPackage->FindSymbol("DEFAULT_SAY");
-
-		SReference progSay = (L| Defun, Func_Say, (Obj, Str), (Default_Say, Obj, Str));
+		SReference progSay = (L| DEFUN, FUNC_SAY, (L| Obj, Str), (L| Default_Say, Obj, Str));
 		contPhys -> PushTodo(LispContinuation::just_evaluate, progSay);
 
-		SReference Func_Pause = PhysPackage->FindSymbol("FUNC_PAUSE");
+
+		//SReference Func_Pause = PhysPackage->FindSymbol("FUNC_PAUSE");
 		SReference Sec = PhysPackage->Intern("SEC");
 		SReference Default_Pause = PhysPackage->FindSymbol("DEFAULT_PAUSE");
-
-		SReference progPause = (L| DEFUN, FUNC_PAUSE, (Obj, Sec), (Default_Pause, Obj, Sec));
+		SReference progPause = (L| DEFUN, FUNC_PAUSE, (L| Obj, Sec), (L| Default_Pause, Obj, Sec));
 		contPhys -> PushTodo(LispContinuation::just_evaluate, progPause);
+
+
+		SReference Default_Name = PhysPackage->FindSymbol("DEFAULT_NAME");
+		SReference progName = (L| DEFUN, FUNC_NAME, (L| Obj), (L| Default_Name, Obj));
+		contPhys -> PushTodo(LispContinuation::just_evaluate, progName);
 
 		// SReference progName = (L| Defun, Func_Say, (Obj, Str), (Default_Say, Obj, Str));
 		// contPhys -> PushTodo(LispContinuation::just_evaluate, progSay);
@@ -172,8 +184,8 @@ void LivingObject::ActivateBehObject()
 
 	 	ReadProgram(plrProgram, behavior);
 
-	 	const char funcSay[] = "(DEFUN MAIN (OBJ) ())";
-		ReadProgram(funcSay, physic);
+	 	const char funcMain[] = "(DEFUN MAIN (OBJ) ())";
+		ReadProgram(funcMain, physic);
 
 		currState = Working;
 		printf("Behavior activated\n");
